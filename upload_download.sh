@@ -16,7 +16,7 @@ fi
 download_dir="./downloads"
 mkdir -p "$download_dir"
 
-# Boucle pour télécharger chaque URL
+# Lire chaque URL depuis le fichier et télécharger
 while IFS= read -r url; do
     # Extraire le nom du fichier à partir de l'URL
     filename=$(basename "$url")
