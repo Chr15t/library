@@ -18,31 +18,21 @@ fi
 DOWNLOAD_DIR="downloads"
 mkdir -p "$DOWNLOAD_DIR"
 
-# Fonction pour télécharger un fichier
-download_file() {
-    local url=$1
-    local save_dir=$2
-    local filename=$(basename "$url")
-    local save_path="$save_dir/$filename"
-
+# Lire le fichier CSV et préparer les commandes pour aria2c
+tail -n +2 "$CSV_FILE" | cut -d, -f3 | while read -r url; do
+    # Extraire le nom de fichier à partir de l'URL
+    filename=$(basename "$url")
+    
+    # Chemin de sauvegarde local
+    save_path="$DOWNLOAD_DIR/$filename"
+    
     # Vérifier si le fichier existe déjà
     if [ -f "$save_path" ]; then
         echo "Le fichier \"$filename\" existe déjà."
     else
-        # Télécharger le fichier
         echo "Téléchargement de \"$filename\"..."
-        wget -O "$save_path" "$url"
-        if [ $? -eq 0 ]; then
-            echo "Téléchargement réussi : \"$filename\""
-        else
-            echo "Erreur lors du téléchargement : \"$filename\""
-        fi
+        aria2c -x 16 -s 16 -d "$DOWNLOAD_DIR" "$url"
     fi
-}
-
-export -f download_file
-
-# Lire le fichier CSV et télécharger chaque fichier en parallèle
-tail -n +2 "$CSV_FILE" | cut -d, -f3 | xargs -n 1 -P 8 -I {} bash -c 'download_file "$@"' _ {} "$DOWNLOAD_DIR"
+done
 
 echo "Téléchargements terminés."
